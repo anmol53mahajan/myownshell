@@ -313,11 +313,8 @@ public class Main {
 
                 String[] commands = s.split("\\|", 2);
 
-                String left = commands[0].trim();
-                String right = commands[1].trim();
-
-                String[] leftParts = left.split(" ");
-                String[] rightParts = right.split(" ");
+                String[] leftParts = commands[0].trim().split(" ");
+                String[] rightParts = commands[1].trim().split(" ");
 
                 ProcessBuilder pb1 = new ProcessBuilder(leftParts);
                 ProcessBuilder pb2 = new ProcessBuilder(rightParts);
@@ -328,28 +325,14 @@ public class Main {
                 pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
                 pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-                Process p1 = pb1.start();
-                Process p2 = pb2.start();
+                Process last =
+                        ProcessBuilder.startPipeline(
+                                java.util.List.of(pb1, pb2)
+                        ).get(1);
 
-                Thread pipeThread = new Thread(() -> {
-                    try (
-                        var in = p1.getInputStream();
-                        var out = p2.getOutputStream()
-                    ) {
-                        in.transferTo(out);
-                        out.close();
-                    } catch (Exception e) {
-                    }
-                });
+                last.getInputStream().transferTo(System.out);
 
-                pipeThread.start();
-
-                p2.getInputStream().transferTo(System.out);
-
-                pipeThread.join();
-
-                p1.waitFor();
-                p2.waitFor();
+                last.waitFor();
             }
             else {
                 String[] parts = s.split(" ");
