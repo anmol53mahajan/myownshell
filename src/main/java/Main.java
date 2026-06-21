@@ -59,6 +59,33 @@ public class Main {
 
         return max + 1;
     }
+
+    static String[] parseCommandLine(String line) {
+        ArrayList<String> tokens = new ArrayList<>();
+        StringBuilder currentToken = new StringBuilder();
+        boolean inSingleQuote = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+
+            if (c == '\'') {
+                inSingleQuote = !inSingleQuote;
+            } else if (c == ' ' && !inSingleQuote) {
+                if (currentToken.length() > 0) {
+                    tokens.add(currentToken.toString());
+                    currentToken = new StringBuilder();
+                }
+            } else {
+                currentToken.append(c);
+            }
+        }
+
+        if (currentToken.length() > 0) {
+            tokens.add(currentToken.toString());
+        }
+
+        return tokens.toArray(new String[0]);
+    }
     public static void main(String[] args) throws Exception {
     
         Scanner sc = new Scanner(System.in);
@@ -123,10 +150,7 @@ public class Main {
 
                     for (String command : commands) {
 
-                        String[] parts =
-                        command.trim()
-                                .replace("\"", "")
-                                .split(" ");
+                        String[] parts = parseCommandLine(command.trim());
 
                         ProcessBuilder pb =
                                 new ProcessBuilder(parts);
@@ -161,8 +185,8 @@ public class Main {
                     String left = commands[0].trim();
                     String right = commands[1].trim();
 
-                    String[] leftParts = left.replace("\"", "").split(" ");
-                    String[] rightParts = right.replace("\"", "").split(" ");
+                    String[] leftParts = parseCommandLine(left);
+                    String[] rightParts = parseCommandLine(right);
 
                     boolean leftBuiltin =
                             leftParts[0].equals("echo") ||
@@ -214,9 +238,12 @@ public class Main {
 
                         if (leftParts[0].equals("echo")) {
 
-                            leftOutput =
-                                    left.substring(5)
-                                    + System.lineSeparator();
+                            StringBuilder echoOutput = new StringBuilder();
+                            for (int i = 1; i < leftParts.length; i++) {
+                                if (i > 1) echoOutput.append(" ");
+                                echoOutput.append(leftParts[i]);
+                            }
+                            leftOutput = echoOutput.toString() + System.lineSeparator();
 
                         } else if (leftParts[0].equals("type")) {
 
@@ -275,9 +302,12 @@ public class Main {
 
                         } else if (rightParts[0].equals("echo")) {
 
-                            System.out.println(
-                                    right.substring(5)
-                            );
+                            StringBuilder echoOutput = new StringBuilder();
+                            for (int i = 1; i < rightParts.length; i++) {
+                                if (i > 1) echoOutput.append(" ");
+                                echoOutput.append(rightParts[i]);
+                            }
+                            System.out.println(echoOutput.toString());
 
                         } else {
 
@@ -313,7 +343,13 @@ public class Main {
                     }
                 }
 
-                String output = s.substring(5);
+                String[] parts = parseCommandLine(s);
+                StringBuilder output = new StringBuilder();
+                for (int i = 1; i < parts.length; i++) {
+                    if (i > 1) output.append(" ");
+                    output.append(parts[i]);
+                }
+                String outputStr = output.toString();
 
                 if (outputFile != null) {
                     PrintWriter pw;
@@ -502,7 +538,7 @@ public class Main {
                 }
             }
             else {
-                String[] parts = s.split(" ");
+                String[] parts = parseCommandLine(s);
                 String cmd = parts[0];
                 boolean background = false;
 
