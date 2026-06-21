@@ -18,6 +18,16 @@ public class Main {
             else if (s.equals("pwd")) {
                 System.out.println(System.getProperty("user.dir"));
             }
+            else if (s.startsWith("cd ")) {
+                String path = s.substring(3).trim();
+                File targetDir = new File(path);
+
+                if (targetDir.isAbsolute() && targetDir.exists() && targetDir.isDirectory()) {
+                    System.setProperty("user.dir", targetDir.getAbsolutePath());
+                } else {
+                    System.out.println("cd: " + path + ": No such file or directory");
+                }
+            }
             else if (s.startsWith("type ")) {
                 String cmd = s.substring(5);
 
