@@ -124,7 +124,9 @@ public class Main {
                     for (String command : commands) {
 
                         String[] parts =
-                                command.trim().split(" ");
+                        command.trim()
+                                .replace("\"", "")
+                                .split(" ");
 
                         ProcessBuilder pb =
                                 new ProcessBuilder(parts);
@@ -159,8 +161,8 @@ public class Main {
                     String left = commands[0].trim();
                     String right = commands[1].trim();
 
-                    String[] leftParts = left.split(" ");
-                    String[] rightParts = right.split(" ");
+                    String[] leftParts = left.replace("\"", "").split(" ");
+                    String[] rightParts = right.replace("\"", "").split(" ");
 
                     boolean leftBuiltin =
                             leftParts[0].equals("echo") ||
