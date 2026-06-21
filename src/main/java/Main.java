@@ -14,8 +14,15 @@ public class Main {
             String outputFile = null;
             String errorFile = null;
             boolean appendOutput = false;
+            boolean appendError = false;
 
-            if (s.contains(" 2> ")) {
+            if (s.contains(" 2>> ")) {
+                String[] temp = s.split(" 2>> ", 2);
+                s = temp[0].trim();
+                errorFile = temp[1].trim();
+                appendError = true;
+            }
+            else if (s.contains(" 2> ")) {
                 String[] temp = s.split(" 2> ", 2);
                 s = temp[0].trim();
                 errorFile = temp[1].trim();
@@ -49,7 +56,11 @@ public class Main {
             else if (s.startsWith("echo ")) {
 
                 if (errorFile != null) {
-                    new PrintWriter(errorFile).close();
+                    if (appendError) {
+                        new PrintWriter(new FileWriter(errorFile, true)).close();
+                    } else {
+                        new PrintWriter(errorFile).close();
+                    }
                 }
 
                 String output = s.substring(5);
@@ -72,7 +83,11 @@ public class Main {
             else if (s.equals("pwd")) {
 
                 if (errorFile != null) {
-                    new PrintWriter(errorFile).close();
+                    if (appendError) {
+                        new PrintWriter(new FileWriter(errorFile, true)).close();
+                    } else {
+                        new PrintWriter(errorFile).close();
+                    }
                 }
 
                 String output = System.getProperty("user.dir");
@@ -110,13 +125,24 @@ public class Main {
                     System.setProperty("user.dir", targetDir.getCanonicalPath());
 
                     if (errorFile != null) {
-                        new PrintWriter(errorFile).close();
+                        if (appendError) {
+                            new PrintWriter(new FileWriter(errorFile, true)).close();
+                        } else {
+                            new PrintWriter(errorFile).close();
+                        }
                     }
                 } else {
                     String errorMsg = "cd: " + path + ": No such file or directory";
 
                     if (errorFile != null) {
-                        PrintWriter pw = new PrintWriter(errorFile);
+                        PrintWriter pw;
+
+                        if (appendError) {
+                            pw = new PrintWriter(new FileWriter(errorFile, true));
+                        } else {
+                            pw = new PrintWriter(errorFile);
+                        }
+
                         pw.println(errorMsg);
                         pw.close();
                     } else {
@@ -127,14 +153,19 @@ public class Main {
             else if (s.startsWith("type ")) {
 
                 if (errorFile != null) {
-                    new PrintWriter(errorFile).close();
+                    if (appendError) {
+                        new PrintWriter(new FileWriter(errorFile, true)).close();
+                    } else {
+                        new PrintWriter(errorFile).close();
+                    }
                 }
 
                 String cmd = s.substring(5);
                 String result;
 
-                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type")
-                        || cmd.equals("pwd") || cmd.equals("cd")) {
+                if (cmd.equals("echo") || cmd.equals("exit")
+                        || cmd.equals("type") || cmd.equals("pwd")
+                        || cmd.equals("cd")) {
                     result = cmd + " is a shell builtin";
                 } else {
                     String path = System.getenv("PATH");
@@ -193,7 +224,14 @@ public class Main {
                     String errorMsg = cmd + ": command not found";
 
                     if (errorFile != null) {
-                        PrintWriter pw = new PrintWriter(errorFile);
+                        PrintWriter pw;
+
+                        if (appendError) {
+                            pw = new PrintWriter(new FileWriter(errorFile, true));
+                        } else {
+                            pw = new PrintWriter(errorFile);
+                        }
+
                         pw.println(errorMsg);
                         pw.close();
                     } else {
@@ -208,7 +246,9 @@ public class Main {
                     if (outputFile != null) {
                         if (appendOutput) {
                             pb.redirectOutput(
-                                ProcessBuilder.Redirect.appendTo(new File(outputFile))
+                                ProcessBuilder.Redirect.appendTo(
+                                    new File(outputFile)
+                                )
                             );
                         } else {
                             pb.redirectOutput(new File(outputFile));
@@ -218,7 +258,15 @@ public class Main {
                     }
 
                     if (errorFile != null) {
-                        pb.redirectError(new File(errorFile));
+                        if (appendError) {
+                            pb.redirectError(
+                                ProcessBuilder.Redirect.appendTo(
+                                    new File(errorFile)
+                                )
+                            );
+                        } else {
+                            pb.redirectError(new File(errorFile));
+                        }
                     } else {
                         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                     }
