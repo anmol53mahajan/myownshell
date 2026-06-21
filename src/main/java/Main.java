@@ -203,7 +203,10 @@ public class Main {
                         new PrintWriter(errorFile).close();
                     }
                 }
-
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                }
                 ArrayList<Job> toRemove = new ArrayList<>();
 
                 for (int i = 0; i < jobs.size(); i++) {
