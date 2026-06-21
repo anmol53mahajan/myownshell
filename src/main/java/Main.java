@@ -45,10 +45,24 @@ public class Main {
 
         jobs.removeAll(toRemove);
     }
+    static int getNextJobNumber(ArrayList<Job> jobs) {
+
+        if (jobs.isEmpty()) {
+            return 1;
+        }
+
+        int max = 0;
+
+        for (Job job : jobs) {
+            max = Math.max(max, job.jobNumber);
+        }
+
+        return max + 1;
+    }
     public static void main(String[] args) throws Exception {
     
         Scanner sc = new Scanner(System.in);
-        int nextJobNumber = 1;
+
         ArrayList<Job> jobs = new ArrayList<>();
         while (true) {
             reapJobs(jobs);
@@ -377,15 +391,16 @@ public class Main {
                     Process p = pb.start();
 
                     if (background) {
+                        
+                        int jobNumber = getNextJobNumber(jobs);
 
                         jobs.add(new Job(
-                                nextJobNumber,
+                                jobNumber,
                                 p,
                                 s
                         ));
 
-                        System.out.println("[" + nextJobNumber + "] " + p.pid());
-                        nextJobNumber++;
+                        System.out.println("[" + jobNumber + "] " + p.pid());
 
                     } else {
                         p.waitFor();
