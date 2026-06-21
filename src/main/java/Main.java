@@ -611,13 +611,7 @@ public class Main {
                         System.out.println(errorMsg);
                     }
                 } else {
-                    String[] cmdParts = new String[parts.length];
-                    cmdParts[0] = executable.getAbsolutePath();
-                    for (int i = 1; i < parts.length; i++) {
-                        cmdParts[i] = parts[i];
-                    }
-
-                    ProcessBuilder pb = new ProcessBuilder(cmdParts);
+                    ProcessBuilder pb = new ProcessBuilder(parts);
 
                     pb.directory(new File(System.getProperty("user.dir")));
                     pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
