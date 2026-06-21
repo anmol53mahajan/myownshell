@@ -69,7 +69,13 @@ public class Main {
         for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
 
-            if (c == '\'' && !inDoubleQuote) {
+            if (c == '\\' && !inSingleQuote && !inDoubleQuote) {
+                // Backslash escaping outside quotes
+                if (i + 1 < line.length()) {
+                    currentToken.append(line.charAt(i + 1));
+                    i++; // Skip the next character
+                }
+            } else if (c == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
             } else if (c == '"' && !inSingleQuote) {
                 inDoubleQuote = !inDoubleQuote;
