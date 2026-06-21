@@ -7,7 +7,9 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         int nextJobNumber = 1;
-
+        Process backgroundProcess = null;
+        String backgroundCommand = null;
+        int backgroundJobNumber = 0;
         while (true) {
             System.out.print("$ ");
             String s = sc.nextLine();
@@ -160,8 +162,12 @@ public class Main {
                         new PrintWriter(errorFile).close();
                     }
                 }
-
-                // Intentionally empty for this stage
+                if (backgroundProcess != null && backgroundProcess.isAlive()) {
+                    System.out.printf("[%d]+  %-24s%s%n",
+                            backgroundJobNumber,
+                            "Running",
+                            backgroundCommand);
+                }
             }
             else if (s.startsWith("type ")) {
 
@@ -297,8 +303,14 @@ public class Main {
                     Process p = pb.start();
 
                     if (background) {
+
+                        backgroundProcess = p;
+                        backgroundJobNumber = nextJobNumber;
+                        backgroundCommand = s + " &";
+
                         System.out.println("[" + nextJobNumber + "] " + p.pid());
                         nextJobNumber++;
+
                     } else {
                         p.waitFor();
                     }
