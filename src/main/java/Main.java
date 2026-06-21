@@ -173,15 +173,16 @@ public class Main {
                 }
                 ArrayList<Job> toRemove = new ArrayList<>();
 
-                for (int i = 0; i < jobs.size(); i++) {
+                for (Job job : jobs) {
 
-                    Job job = jobs.get(i);
+                    int aliveOrDoneCount = jobs.size();
 
                     char marker = ' ';
 
-                    if (i == jobs.size() - 1) {
+                    if (job == jobs.get(aliveOrDoneCount - 1)) {
                         marker = '+';
-                    } else if (i == jobs.size() - 2) {
+                    } else if (aliveOrDoneCount >= 2 &&
+                            job == jobs.get(aliveOrDoneCount - 2)) {
                         marker = '-';
                     }
 
