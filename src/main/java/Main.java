@@ -150,6 +150,18 @@ public class Main {
                     }
                 }
             }
+            else if (s.equals("jobs")) {
+
+                if (errorFile != null) {
+                    if (appendError) {
+                        new PrintWriter(new FileWriter(errorFile, true)).close();
+                    } else {
+                        new PrintWriter(errorFile).close();
+                    }
+                }
+
+                // Intentionally empty for this stage
+            }
             else if (s.startsWith("type ")) {
 
                 if (errorFile != null) {
@@ -165,7 +177,7 @@ public class Main {
 
                 if (cmd.equals("echo") || cmd.equals("exit")
                         || cmd.equals("type") || cmd.equals("pwd")
-                        || cmd.equals("cd")) {
+                        || cmd.equals("cd") || cmd.equals("jobs")) {
                     result = cmd + " is a shell builtin";
                 } else {
                     String path = System.getenv("PATH");
