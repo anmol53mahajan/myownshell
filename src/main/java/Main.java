@@ -171,13 +171,11 @@ public class Main {
                         new PrintWriter(errorFile).close();
                     }
                 }
+                ArrayList<Job> toRemove = new ArrayList<>();
+
                 for (int i = 0; i < jobs.size(); i++) {
 
                     Job job = jobs.get(i);
-
-                    if (!job.process.isAlive()) {
-                        continue;
-                    }
 
                     char marker = ' ';
 
@@ -187,12 +185,27 @@ public class Main {
                         marker = '-';
                     }
 
-                    System.out.printf("[%d]%c  %-24s%s%n",
-                            job.jobNumber,
-                            marker,
-                            "Running",
-                            job.command);
+                    if (job.process.isAlive()) {
+
+                        System.out.printf("[%d]%c  %-24s%s%n",
+                                job.jobNumber,
+                                marker,
+                                "Running",
+                                job.command);
+
+                    } else {
+
+                        System.out.printf("[%d]%c  %-24s%s%n",
+                                job.jobNumber,
+                                marker,
+                                "Done",
+                                job.command.replace(" &", ""));
+
+                        toRemove.add(job);
+                    }
                 }
+
+                jobs.removeAll(toRemove);
             }
             else if (s.startsWith("type ")) {
 
