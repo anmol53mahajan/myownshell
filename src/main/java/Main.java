@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
@@ -12,16 +13,31 @@ public class Main {
 
             String outputFile = null;
             String errorFile = null;
+            boolean appendOutput = false;
 
             if (s.contains(" 2> ")) {
                 String[] temp = s.split(" 2> ", 2);
                 s = temp[0].trim();
                 errorFile = temp[1].trim();
-            } else if (s.contains(" 1> ")) {
+            }
+            else if (s.contains(" 1>> ")) {
+                String[] temp = s.split(" 1>> ", 2);
+                s = temp[0].trim();
+                outputFile = temp[1].trim();
+                appendOutput = true;
+            }
+            else if (s.contains(" >> ")) {
+                String[] temp = s.split(" >> ", 2);
+                s = temp[0].trim();
+                outputFile = temp[1].trim();
+                appendOutput = true;
+            }
+            else if (s.contains(" 1> ")) {
                 String[] temp = s.split(" 1> ", 2);
                 s = temp[0].trim();
                 outputFile = temp[1].trim();
-            } else if (s.contains(" > ")) {
+            }
+            else if (s.contains(" > ")) {
                 String[] temp = s.split(" > ", 2);
                 s = temp[0].trim();
                 outputFile = temp[1].trim();
@@ -39,7 +55,14 @@ public class Main {
                 String output = s.substring(5);
 
                 if (outputFile != null) {
-                    PrintWriter pw = new PrintWriter(outputFile);
+                    PrintWriter pw;
+
+                    if (appendOutput) {
+                        pw = new PrintWriter(new FileWriter(outputFile, true));
+                    } else {
+                        pw = new PrintWriter(outputFile);
+                    }
+
                     pw.println(output);
                     pw.close();
                 } else {
@@ -55,7 +78,14 @@ public class Main {
                 String output = System.getProperty("user.dir");
 
                 if (outputFile != null) {
-                    PrintWriter pw = new PrintWriter(outputFile);
+                    PrintWriter pw;
+
+                    if (appendOutput) {
+                        pw = new PrintWriter(new FileWriter(outputFile, true));
+                    } else {
+                        pw = new PrintWriter(outputFile);
+                    }
+
                     pw.println(output);
                     pw.close();
                 } else {
@@ -103,7 +133,8 @@ public class Main {
                 String cmd = s.substring(5);
                 String result;
 
-                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd") || cmd.equals("cd")) {
+                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type")
+                        || cmd.equals("pwd") || cmd.equals("cd")) {
                     result = cmd + " is a shell builtin";
                 } else {
                     String path = System.getenv("PATH");
@@ -126,7 +157,14 @@ public class Main {
                 }
 
                 if (outputFile != null) {
-                    PrintWriter pw = new PrintWriter(outputFile);
+                    PrintWriter pw;
+
+                    if (appendOutput) {
+                        pw = new PrintWriter(new FileWriter(outputFile, true));
+                    } else {
+                        pw = new PrintWriter(outputFile);
+                    }
+
                     pw.println(result);
                     pw.close();
                 } else {
@@ -168,7 +206,13 @@ public class Main {
                     pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
 
                     if (outputFile != null) {
-                        pb.redirectOutput(new File(outputFile));
+                        if (appendOutput) {
+                            pb.redirectOutput(
+                                ProcessBuilder.Redirect.appendTo(new File(outputFile))
+                            );
+                        } else {
+                            pb.redirectOutput(new File(outputFile));
+                        }
                     } else {
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                     }
