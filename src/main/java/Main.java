@@ -121,66 +121,128 @@ public class Main {
                 String[] leftParts = left.split(" ");
                 String[] rightParts = right.split(" ");
 
-                String leftOutput = "";
+                boolean leftBuiltin =
+                        leftParts[0].equals("echo") ||
+                        leftParts[0].equals("type");
 
-                // LEFT SIDE
-                if (leftParts[0].equals("echo")) {
+                boolean rightBuiltin =
+                        rightParts[0].equals("echo") ||
+                        rightParts[0].equals("type");
 
-                    leftOutput = left.substring(5) + System.lineSeparator();
+                // NORMAL PIPELINE (no builtins)
+                if (!leftBuiltin && !rightBuiltin) {
 
-                } else if (leftParts[0].equals("type")) {
+                    ProcessBuilder pb1 = new ProcessBuilder(leftParts);
+                    ProcessBuilder pb2 = new ProcessBuilder(rightParts);
 
-                    String cmdName = leftParts[1];
+                    pb1.directory(new File(System.getProperty("user.dir")));
+                    pb2.directory(new File(System.getProperty("user.dir")));
 
-                    if (cmdName.equals("echo") || cmdName.equals("exit")
-                            || cmdName.equals("type") || cmdName.equals("pwd")
-                            || cmdName.equals("cd") || cmdName.equals("jobs")) {
-                        leftOutput = cmdName + " is a shell builtin"
-                                + System.lineSeparator();
-                    }
+                    pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-                } else {
+                    Process last =
+                            ProcessBuilder.startPipeline(
+                                    java.util.List.of(pb1, pb2)
+                            ).get(1);
 
-                    ProcessBuilder pb = new ProcessBuilder(leftParts);
-                    pb.directory(new File(System.getProperty("user.dir")));
+                    last.getInputStream().transferTo(System.out);
 
-                    Process p = pb.start();
-
-                    java.io.ByteArrayOutputStream baos =
-                            new java.io.ByteArrayOutputStream();
-
-                    p.getInputStream().transferTo(baos);
-
-                    p.waitFor();
-
-                    leftOutput = baos.toString();
+                    last.waitFor();
                 }
 
-                // RIGHT SIDE
-                if (rightParts[0].equals("type")) {
+                // PIPELINE WITH BUILTIN
+                else {
 
-                    String cmdName = rightParts[1];
+                    String leftOutput = "";
 
-                    if (cmdName.equals("echo") || cmdName.equals("exit")
-                            || cmdName.equals("type") || cmdName.equals("pwd")
-                            || cmdName.equals("cd") || cmdName.equals("jobs")) {
+                    // LEFT SIDE BUILTIN
+                    if (leftParts[0].equals("echo")) {
 
-                        System.out.println(cmdName + " is a shell builtin");
+                        leftOutput = left.substring(5)
+                                + System.lineSeparator();
+
+                    } else if (leftParts[0].equals("type")) {
+
+                        String cmdName = leftParts[1];
+
+                        if (cmdName.equals("echo")
+                                || cmdName.equals("exit")
+                                || cmdName.equals("type")
+                                || cmdName.equals("pwd")
+                                || cmdName.equals("cd")
+                                || cmdName.equals("jobs")) {
+
+                            leftOutput = cmdName
+                                    + " is a shell builtin"
+                                    + System.lineSeparator();
+                        }
+
+                    } else {
+
+                        ProcessBuilder pb =
+                                new ProcessBuilder(leftParts);
+
+                        pb.directory(
+                                new File(System.getProperty("user.dir"))
+                        );
+
+                        Process p = pb.start();
+
+                        java.io.ByteArrayOutputStream baos =
+                                new java.io.ByteArrayOutputStream();
+
+                        p.getInputStream().transferTo(baos);
+
+                        p.waitFor();
+
+                        leftOutput = baos.toString();
                     }
 
-                } else {
+                    // RIGHT SIDE BUILTIN
+                    if (rightParts[0].equals("type")) {
 
-                    ProcessBuilder pb = new ProcessBuilder(rightParts);
-                    pb.directory(new File(System.getProperty("user.dir")));
+                        String cmdName = rightParts[1];
 
-                    Process p = pb.start();
+                        if (cmdName.equals("echo")
+                                || cmdName.equals("exit")
+                                || cmdName.equals("type")
+                                || cmdName.equals("pwd")
+                                || cmdName.equals("cd")
+                                || cmdName.equals("jobs")) {
 
-                    p.getOutputStream().write(leftOutput.getBytes());
-                    p.getOutputStream().close();
+                            System.out.println(
+                                    cmdName + " is a shell builtin"
+                            );
+                        }
 
-                    p.getInputStream().transferTo(System.out);
+                    } else if (rightParts[0].equals("echo")) {
 
-                    p.waitFor();
+                        System.out.println(
+                                right.substring(5)
+                        );
+
+                    } else {
+
+                        ProcessBuilder pb =
+                                new ProcessBuilder(rightParts);
+
+                        pb.directory(
+                                new File(System.getProperty("user.dir"))
+                        );
+
+                        Process p = pb.start();
+
+                        p.getOutputStream()
+                                .write(leftOutput.getBytes());
+
+                        p.getOutputStream().close();
+
+                        p.getInputStream()
+                                .transferTo(System.out);
+
+                        p.waitFor();
+                    }
                 }
             }
             else if (s.startsWith("echo ")) {
