@@ -69,11 +69,30 @@ public class Main {
         for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
 
-            if (c == '\\' && !inSingleQuote && !inDoubleQuote) {
-                // Backslash escaping outside quotes
-                if (i + 1 < line.length()) {
-                    currentToken.append(line.charAt(i + 1));
-                    i++; // Skip the next character
+            if (c == '\\') {
+                if (inSingleQuote) {
+                    // Inside single quotes, backslash is always literal
+                    currentToken.append(c);
+                } else if (inDoubleQuote) {
+                    // Inside double quotes, backslash only escapes: ", \, $, `
+                    if (i + 1 < line.length()) {
+                        char next = line.charAt(i + 1);
+                        if (next == '"' || next == '\\' || next == '$' || next == '`') {
+                            currentToken.append(next);
+                            i++; // Skip the next character
+                        } else {
+                            // For other characters, backslash is literal
+                            currentToken.append(c);
+                        }
+                    } else {
+                        currentToken.append(c);
+                    }
+                } else {
+                    // Outside quotes, backslash escapes the next character
+                    if (i + 1 < line.length()) {
+                        currentToken.append(line.charAt(i + 1));
+                        i++; // Skip the next character
+                    }
                 }
             } else if (c == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
