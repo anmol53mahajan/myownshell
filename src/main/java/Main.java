@@ -11,8 +11,13 @@ public class Main {
             String s = sc.nextLine();
 
             String outputFile = null;
+            String errorFile = null;
 
-            if (s.contains(" 1> ")) {
+            if (s.contains(" 2> ")) {
+                String[] temp = s.split(" 2> ", 2);
+                s = temp[0].trim();
+                errorFile = temp[1].trim();
+            } else if (s.contains(" 1> ")) {
                 String[] temp = s.split(" 1> ", 2);
                 s = temp[0].trim();
                 outputFile = temp[1].trim();
@@ -26,6 +31,11 @@ public class Main {
                 break;
             }
             else if (s.startsWith("echo ")) {
+
+                if (errorFile != null) {
+                    new PrintWriter(errorFile).close();
+                }
+
                 String output = s.substring(5);
 
                 if (outputFile != null) {
@@ -37,6 +47,11 @@ public class Main {
                 }
             }
             else if (s.equals("pwd")) {
+
+                if (errorFile != null) {
+                    new PrintWriter(errorFile).close();
+                }
+
                 String output = System.getProperty("user.dir");
 
                 if (outputFile != null) {
@@ -63,15 +78,32 @@ public class Main {
 
                 if (targetDir.exists() && targetDir.isDirectory()) {
                     System.setProperty("user.dir", targetDir.getCanonicalPath());
+
+                    if (errorFile != null) {
+                        new PrintWriter(errorFile).close();
+                    }
                 } else {
-                    System.out.println("cd: " + path + ": No such file or directory");
+                    String errorMsg = "cd: " + path + ": No such file or directory";
+
+                    if (errorFile != null) {
+                        PrintWriter pw = new PrintWriter(errorFile);
+                        pw.println(errorMsg);
+                        pw.close();
+                    } else {
+                        System.out.println(errorMsg);
+                    }
                 }
             }
             else if (s.startsWith("type ")) {
+
+                if (errorFile != null) {
+                    new PrintWriter(errorFile).close();
+                }
+
                 String cmd = s.substring(5);
                 String result;
 
-                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd")) {
+                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd") || cmd.equals("cd")) {
                     result = cmd + " is a shell builtin";
                 } else {
                     String path = System.getenv("PATH");
@@ -120,18 +152,31 @@ public class Main {
                 }
 
                 if (executable == null) {
-                    System.out.println(cmd + ": command not found");
+                    String errorMsg = cmd + ": command not found";
+
+                    if (errorFile != null) {
+                        PrintWriter pw = new PrintWriter(errorFile);
+                        pw.println(errorMsg);
+                        pw.close();
+                    } else {
+                        System.out.println(errorMsg);
+                    }
                 } else {
                     ProcessBuilder pb = new ProcessBuilder(parts);
 
                     pb.directory(new File(System.getProperty("user.dir")));
                     pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-                    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
                     if (outputFile != null) {
                         pb.redirectOutput(new File(outputFile));
                     } else {
                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                    }
+
+                    if (errorFile != null) {
+                        pb.redirectError(new File(errorFile));
+                    } else {
+                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                     }
 
                     Process p = pb.start();
