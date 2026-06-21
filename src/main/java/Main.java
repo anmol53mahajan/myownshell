@@ -5,7 +5,7 @@ public class Main {
         Scanner sc=new Scanner(System.in);
         while (true) { 
             System.out.print("$ ");
-            String s=sc.next();
+            String s=sc.nextLine();
             if (s.equals("exit")){
                 break;
             }
