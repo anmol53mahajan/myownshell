@@ -18,7 +18,6 @@ public class Main {
             else if (s.startsWith("type ")) {
                 String cmd = s.substring(5);
 
-                // Builtins
                 if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type")) {
                     System.out.println(cmd + " is a shell builtin");
                 }
@@ -44,7 +43,34 @@ public class Main {
                 }
             }
             else {
-                System.out.println(s + ": command not found");
+                String[] parts = s.split(" ");
+                String cmd = parts[0];
+
+                String path = System.getenv("PATH");
+                String[] dirs = path.split(File.pathSeparator);
+
+                File executable = null;
+
+                for (String dir : dirs) {
+                    File file = new File(dir, cmd);
+
+                    if (file.exists() && file.canExecute()) {
+                        executable = file;
+                        break;
+                    }
+                }
+
+                if (executable == null) {
+                    System.out.println(cmd + ": command not found");
+                } else {
+                    parts[0] = executable.getAbsolutePath();
+
+                    ProcessBuilder pb = new ProcessBuilder(parts);
+                    pb.inheritIO();
+
+                    Process p = pb.start();
+                    p.waitFor();
+                }
             }
         }
     }
