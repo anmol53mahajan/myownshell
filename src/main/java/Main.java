@@ -306,7 +306,7 @@ public class Main {
 
                         backgroundProcess = p;
                         backgroundJobNumber = nextJobNumber;
-                        backgroundCommand = s + " &";
+                        backgroundCommand = s;
 
                         System.out.println("[" + nextJobNumber + "] " + p.pid());
                         nextJobNumber++;
