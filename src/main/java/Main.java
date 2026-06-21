@@ -20,12 +20,17 @@ public class Main {
             }
             else if (s.startsWith("cd ")) {
                 String path = s.substring(3).trim();
-                File targetDir = new File(path);
+                File targetDir;
 
-                if (!targetDir.isAbsolute()) {
-                    targetDir = new File(System.getProperty("user.dir"), path);
+                if (path.equals("~")) {
+                    targetDir = new File(System.getenv("HOME"));
+                } else {
+                    targetDir = new File(path);
+
+                    if (!targetDir.isAbsolute()) {
+                        targetDir = new File(System.getProperty("user.dir"), path);
+                    }
                 }
-
                 if (targetDir.exists() && targetDir.isDirectory()) {
                     System.setProperty("user.dir", targetDir.getCanonicalPath());
                 } else {
