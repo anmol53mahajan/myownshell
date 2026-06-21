@@ -63,7 +63,6 @@ public class Main {
                 if (executable == null) {
                     System.out.println(cmd + ": command not found");
                 } else {
-                    parts[0] = executable.getAbsolutePath();
 
                     ProcessBuilder pb = new ProcessBuilder(parts);
                     pb.inheritIO();
