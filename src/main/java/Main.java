@@ -64,13 +64,16 @@ public class Main {
         ArrayList<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
         boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
 
         for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
 
-            if (c == '\'') {
+            if (c == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
-            } else if (c == ' ' && !inSingleQuote) {
+            } else if (c == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+            } else if (c == ' ' && !inSingleQuote && !inDoubleQuote) {
                 if (currentToken.length() > 0) {
                     tokens.add(currentToken.toString());
                     currentToken = new StringBuilder();
