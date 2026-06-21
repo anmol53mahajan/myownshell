@@ -1,15 +1,24 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
+class Job {
+    int jobNumber;
+    Process process;
+    String command;
 
+    Job(int jobNumber, Process process, String command) {
+        this.jobNumber = jobNumber;
+        this.process = process;
+        this.command = command;
+    }
+}
 public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         int nextJobNumber = 1;
-        Process backgroundProcess = null;
-        String backgroundCommand = null;
-        int backgroundJobNumber = 0;
+        ArrayList<Job> jobs = new ArrayList<>();
         while (true) {
             System.out.print("$ ");
             String s = sc.nextLine();
@@ -162,11 +171,27 @@ public class Main {
                         new PrintWriter(errorFile).close();
                     }
                 }
-                if (backgroundProcess != null && backgroundProcess.isAlive()) {
-                    System.out.printf("[%d]+  %-24s%s%n",
-                            backgroundJobNumber,
+                for (int i = 0; i < jobs.size(); i++) {
+
+                    Job job = jobs.get(i);
+
+                    if (!job.process.isAlive()) {
+                        continue;
+                    }
+
+                    char marker = ' ';
+
+                    if (i == jobs.size() - 1) {
+                        marker = '+';
+                    } else if (i == jobs.size() - 2) {
+                        marker = '-';
+                    }
+
+                    System.out.printf("[%d]%c  %-24s%s%n",
+                            job.jobNumber,
+                            marker,
                             "Running",
-                            backgroundCommand);
+                            job.command);
                 }
             }
             else if (s.startsWith("type ")) {
@@ -304,9 +329,11 @@ public class Main {
 
                     if (background) {
 
-                        backgroundProcess = p;
-                        backgroundJobNumber = nextJobNumber;
-                        backgroundCommand = s;
+                        jobs.add(new Job(
+                                nextJobNumber,
+                                p,
+                                s
+                        ));
 
                         System.out.println("[" + nextJobNumber + "] " + p.pid());
                         nextJobNumber++;
