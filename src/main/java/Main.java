@@ -6,6 +6,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
+        int nextJobNumber = 1;
 
         while (true) {
             System.out.print("$ ");
@@ -217,7 +218,17 @@ public class Main {
             else {
                 String[] parts = s.split(" ");
                 String cmd = parts[0];
+                boolean background = false;
 
+                if (parts.length > 0 && parts[parts.length - 1].equals("&")) {
+                    background = true;
+
+                    String[] temp = new String[parts.length - 1];
+                    System.arraycopy(parts, 0, temp, 0, parts.length - 1);
+                    parts = temp;
+
+                    cmd = parts[0];
+                }
                 String path = System.getenv("PATH");
                 String[] dirs = path.split(File.pathSeparator);
 
@@ -284,7 +295,13 @@ public class Main {
                     }
 
                     Process p = pb.start();
-                    p.waitFor();
+
+                    if (background) {
+                        System.out.println("[" + nextJobNumber + "] " + p.pid());
+                        nextJobNumber++;
+                    } else {
+                        p.waitFor();
+                    }
                 }
             }
         }
