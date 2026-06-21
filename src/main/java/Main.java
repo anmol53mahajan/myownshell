@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class Main {
@@ -9,14 +10,42 @@ public class Main {
             System.out.print("$ ");
             String s = sc.nextLine();
 
+            String outputFile = null;
+
+            if (s.contains(" 1> ")) {
+                String[] temp = s.split(" 1> ", 2);
+                s = temp[0].trim();
+                outputFile = temp[1].trim();
+            } else if (s.contains(" > ")) {
+                String[] temp = s.split(" > ", 2);
+                s = temp[0].trim();
+                outputFile = temp[1].trim();
+            }
+
             if (s.equals("exit")) {
                 break;
             }
             else if (s.startsWith("echo ")) {
-                System.out.println(s.substring(5));
+                String output = s.substring(5);
+
+                if (outputFile != null) {
+                    PrintWriter pw = new PrintWriter(outputFile);
+                    pw.println(output);
+                    pw.close();
+                } else {
+                    System.out.println(output);
+                }
             }
             else if (s.equals("pwd")) {
-                System.out.println(System.getProperty("user.dir"));
+                String output = System.getProperty("user.dir");
+
+                if (outputFile != null) {
+                    PrintWriter pw = new PrintWriter(outputFile);
+                    pw.println(output);
+                    pw.close();
+                } else {
+                    System.out.println(output);
+                }
             }
             else if (s.startsWith("cd ")) {
                 String path = s.substring(3).trim();
@@ -31,6 +60,7 @@ public class Main {
                         targetDir = new File(System.getProperty("user.dir"), path);
                     }
                 }
+
                 if (targetDir.exists() && targetDir.isDirectory()) {
                     System.setProperty("user.dir", targetDir.getCanonicalPath());
                 } else {
@@ -39,29 +69,36 @@ public class Main {
             }
             else if (s.startsWith("type ")) {
                 String cmd = s.substring(5);
+                String result;
 
                 if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd")) {
-                    System.out.println(cmd + " is a shell builtin");
-                }
-                else {
+                    result = cmd + " is a shell builtin";
+                } else {
                     String path = System.getenv("PATH");
                     String[] dirs = path.split(File.pathSeparator);
 
-                    boolean found = false;
+                    result = null;
 
                     for (String dir : dirs) {
                         File file = new File(dir, cmd);
 
                         if (file.exists() && file.canExecute()) {
-                            System.out.println(cmd + " is " + file.getAbsolutePath());
-                            found = true;
+                            result = cmd + " is " + file.getAbsolutePath();
                             break;
                         }
                     }
 
-                    if (!found) {
-                        System.out.println(cmd + ": not found");
+                    if (result == null) {
+                        result = cmd + ": not found";
                     }
+                }
+
+                if (outputFile != null) {
+                    PrintWriter pw = new PrintWriter(outputFile);
+                    pw.println(result);
+                    pw.close();
+                } else {
+                    System.out.println(result);
                 }
             }
             else {
@@ -85,9 +122,17 @@ public class Main {
                 if (executable == null) {
                     System.out.println(cmd + ": command not found");
                 } else {
-
                     ProcessBuilder pb = new ProcessBuilder(parts);
-                    pb.inheritIO();
+
+                    pb.directory(new File(System.getProperty("user.dir")));
+                    pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+                    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+                    if (outputFile != null) {
+                        pb.redirectOutput(new File(outputFile));
+                    } else {
+                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                    }
 
                     Process p = pb.start();
                     p.waitFor();
