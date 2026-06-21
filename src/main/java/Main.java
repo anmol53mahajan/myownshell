@@ -21,7 +21,7 @@ public class Main {
             else if (s.startsWith("type ")) {
                 String cmd = s.substring(5);
 
-                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type")) {
+                if (cmd.equals("echo") || cmd.equals("exit") || cmd.equals("type") || cmd.equals("pwd")) {
                     System.out.println(cmd + " is a shell builtin");
                 }
                 else {
