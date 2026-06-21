@@ -309,6 +309,48 @@ public class Main {
                     System.out.println(result);
                 }
             }
+            else if (s.contains(" | ")) {
+
+                String[] commands = s.split("\\|", 2);
+
+                String left = commands[0].trim();
+                String right = commands[1].trim();
+
+                String[] leftParts = left.split(" ");
+                String[] rightParts = right.split(" ");
+
+                ProcessBuilder pb1 = new ProcessBuilder(leftParts);
+                ProcessBuilder pb2 = new ProcessBuilder(rightParts);
+
+                pb1.directory(new File(System.getProperty("user.dir")));
+                pb2.directory(new File(System.getProperty("user.dir")));
+
+                pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
+                pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+                Process p1 = pb1.start();
+                Process p2 = pb2.start();
+
+                Thread pipeThread = new Thread(() -> {
+                    try (
+                        var in = p1.getInputStream();
+                        var out = p2.getOutputStream()
+                    ) {
+                        in.transferTo(out);
+                        out.close();
+                    } catch (Exception e) {
+                    }
+                });
+
+                pipeThread.start();
+
+                p2.getInputStream().transferTo(System.out);
+
+                pipeThread.join();
+
+                p1.waitFor();
+                p2.waitFor();
+            }
             else {
                 String[] parts = s.split(" ");
                 String cmd = parts[0];
