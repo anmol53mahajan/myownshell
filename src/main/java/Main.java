@@ -15,11 +15,43 @@ class Job {
     }
 }
 public class Main {
+    static void reapJobs(ArrayList<Job> jobs) {
+
+        ArrayList<Job> toRemove = new ArrayList<>();
+
+        for (int i = 0; i < jobs.size(); i++) {
+
+            Job job = jobs.get(i);
+
+            if (!job.process.isAlive()) {
+
+                char marker = ' ';
+
+                if (i == jobs.size() - 1) {
+                    marker = '+';
+                } else if (i == jobs.size() - 2) {
+                    marker = '-';
+                }
+
+                System.out.printf("[%d]%c  %-24s%s%n",
+                        job.jobNumber,
+                        marker,
+                        "Done",
+                        job.command.replace(" &", ""));
+
+                toRemove.add(job);
+            }
+        }
+
+        jobs.removeAll(toRemove);
+    }
     public static void main(String[] args) throws Exception {
+    
         Scanner sc = new Scanner(System.in);
         int nextJobNumber = 1;
         ArrayList<Job> jobs = new ArrayList<>();
         while (true) {
+            reapJobs(jobs);
             System.out.print("$ ");
             String s = sc.nextLine();
 
@@ -171,42 +203,27 @@ public class Main {
                         new PrintWriter(errorFile).close();
                     }
                 }
-                ArrayList<Job> toRemove = new ArrayList<>();
 
-                for (Job job : jobs) {
+                reapJobs(jobs);
 
-                    int aliveOrDoneCount = jobs.size();
+                for (int i = 0; i < jobs.size(); i++) {
+
+                    Job job = jobs.get(i);
 
                     char marker = ' ';
 
-                    if (job == jobs.get(aliveOrDoneCount - 1)) {
+                    if (i == jobs.size() - 1) {
                         marker = '+';
-                    } else if (aliveOrDoneCount >= 2 &&
-                            job == jobs.get(aliveOrDoneCount - 2)) {
+                    } else if (i == jobs.size() - 2) {
                         marker = '-';
                     }
 
-                    if (job.process.isAlive()) {
-
-                        System.out.printf("[%d]%c  %-24s%s%n",
-                                job.jobNumber,
-                                marker,
-                                "Running",
-                                job.command);
-
-                    } else {
-
-                        System.out.printf("[%d]%c  %-24s%s%n",
-                                job.jobNumber,
-                                marker,
-                                "Done",
-                                job.command.replace(" &", ""));
-
-                        toRemove.add(job);
-                    }
+                    System.out.printf("[%d]%c  %-24s%s%n",
+                            job.jobNumber,
+                            marker,
+                            "Running",
+                            job.command);
                 }
-
-                jobs.removeAll(toRemove);
             }
             else if (s.startsWith("type ")) {
 
