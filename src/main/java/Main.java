@@ -22,8 +22,12 @@ public class Main {
                 String path = s.substring(3).trim();
                 File targetDir = new File(path);
 
-                if (targetDir.isAbsolute() && targetDir.exists() && targetDir.isDirectory()) {
-                    System.setProperty("user.dir", targetDir.getAbsolutePath());
+                if (!targetDir.isAbsolute()) {
+                    targetDir = new File(System.getProperty("user.dir"), path);
+                }
+
+                if (targetDir.exists() && targetDir.isDirectory()) {
+                    System.setProperty("user.dir", targetDir.getCanonicalPath());
                 } else {
                     System.out.println("cd: " + path + ": No such file or directory");
                 }
